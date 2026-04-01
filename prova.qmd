@@ -1,0 +1,35 @@
+---
+title: "Analisi Precipitazioni ICON DOM03"
+format: html
+execute:
+  echo: false
+---
+
+## Descrizione
+
+Inserisci qui il testo descrittivo dell'analisi. Puoi descrivere la situazione
+meteorologica, il run del modello ICON DOM03, le scadenze rappresentate, ecc.
+```{python}
+from IPython.display import display, HTML
+
+base = "../Immagini_supporto/Urbano/Immagini_caso_20240701/icon_2I_fcruc18/plot_map_modeltwater_icon_2I_fcruc18_{i}_DOM03_2024070118+0_6.png"
+
+imgs = "".join(
+    f'<img src="{base.format(i=i)}" style="width:100%;">'
+    for i in range(6)
+)
+
+html = f"""
+<figure>
+  <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px;">
+    {imgs}
+  </div>
+  <figcaption style="text-align:center; margin-top:8px;">
+    Figura 1: Mappe del contenuto d'acqua totale — ICON DOM03, 
+    run 18 UTC del 01/07/2024, scadenza +06h.
+  </figcaption>
+</figure>
+"""
+
+display(HTML(html))
+```

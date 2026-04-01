@@ -1,0 +1,37 @@
+# ─────────────────────────────────────────────────────────────
+# config.yaml
+# ┌─────────────────────────────────────────────────────────┐
+# │  Questo è l'UNICO file che devi modificare.             │
+# │  Definisci esperimenti, variabili e percorsi qui sotto. │
+# └─────────────────────────────────────────────────────────┘
+# ─────────────────────────────────────────────────────────────
+
+# ── Variabili da plottare ─────────────────────────────────────────────────────
+# Devono corrispondere alle chiavi presenti in MeteoVariables.CONFIGS (config.py)
+variables:
+  - twater
+  - tp
+  - cape_ml
+
+# ── Esperimenti ───────────────────────────────────────────────────────────────
+experiments:
+  - experiment: "icon_2I_fcruc"
+    dataini: "20240701"
+    oraini: "18"
+    step_ini: 0
+    step_fin: 6
+    resolution: "2km"
+
+# ── Parametri condivisi ───────────────────────────────────────────────────────
+comune_studied: "BOLOGNA"
+selected_domain: "DOM03"   # DOM03 oppure DOM04
+
+# ── Percorsi ──────────────────────────────────────────────────────────────────
+dir_base:    "/home/lmattavelli@ARPA.EMR.NET/Documenti/Progetti/"
+shp_comuni:  "/home/lmattavelli@ARPA.EMR.NET/Documenti/Progetti/Old_projects/GO1/Mappe/Com01012025_WGS84.shp"
+shp_regioni: "/home/lmattavelli@ARPA.EMR.NET/Documenti/Progetti/Old_projects/GO1/Mappe/Reg01012025_WGS84.shp"
+
+# ── Domini disponibili ────────────────────────────────────────────────────────
+domains:
+  DOM03: [8.6,   13.2,  43.43, 45.43]
+  DOM04: [10.75, 11.89, 43.93, 44.99]

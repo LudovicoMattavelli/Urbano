@@ -10,7 +10,16 @@ import xarray as xr
 import numpy as np
 import matplotlib as plt
 import cartopy.crs as ccrs
-Data_dir='../Data_supporto/Urbano'
+# 
+# ===============================
+f_base = 19
+f_title = f_base + 2
+f_assi = f_base - 2
+f_ticks = f_base - 2# was -4
+imm_a = 12
+imm_b=6
+
+Data_dir='/home/lmattavelli@ARPA.EMR.NET/Documenti/Progetti/Data_supporto/Urbano'
 Domain_name='Nest500_from_OPE2km_to_EM500m_GLBC_v1'
 Domain_number='DOM01'
 grib_file=f'{Data_dir}/{Domain_name}_{Domain_number}_external_parameter.nc'
@@ -45,7 +54,7 @@ lu = ds['LU_CLASS_FRACTION'].values.copy()  # copia per non modificare l'origina
 # Se nclass_lu va da 1 a 23 -> classe 19 è indice 18  # ASSUNZIONE DA VERIFICARE!
 # Dal print del dataset, nclass_lu è una dimensione senza coordinate -> assumiamo 0-based
 CLASS_OLD = 18  # indice 0-based per la classe 19 (ARTIFICIAL AREAS)
-CLASS_NEW = 19  # indice 0-based per la classe 20 (BARE AREAS)
+CLASS_NEW = 3  # indice 0-based per la classe 20 (BARE AREAS) classe 4 (mosaic vegetation (50-70%) - cropland (20-50%))
 
 # Per ogni cella FUORI dalla bbox:
 # - azzeriamo la frazione della classe 19
@@ -75,10 +84,10 @@ lu_new = xr.DataArray(
 ds_modified = ds.assign(LU_CLASS_FRACTION=lu_new)
 
 # --- Salvataggio ---
-output_file = f'{Data_dir}/{Domain_name}_{Domain_number}_external_parameter_modified.nc'
+output_file = f'{Data_dir}/{Domain_name}_{Domain_number}_external_parameter_modified_2.nc'
 ds_modified.to_netcdf(output_file)
 print(f"\nFile salvato: {output_file}")
-def plot_lu_class_fraction_scatter(ds, class_index, extent, title_prefix="", s=0.5, comune=False, cmap='YlOrRd'):
+def plot_lu_class_fraction_scatter(ds, class_index, extent, title_prefix="", s=0.5, comune=False, cmap='YlOrRd',figsize=(imm_a, imm_b)):
     """
     Plotta la LU_CLASS_FRACTION come scatter plot (un punto per cella).
     Le celle con frazione = 0 non vengono plottate.
@@ -101,14 +110,12 @@ def plot_lu_class_fraction_scatter(ds, class_index, extent, title_prefix="", s=0
     if mask.sum() == 0:
         print(f"Nessuna cella attiva per la classe {class_index+1}, skip.")
         return
-    import matplotlib.pyplot as plt
+    # Proiezione e figura
     projPC = ccrs.PlateCarree()
-    imm_a = 12
-    imm_b = 6
-    figsize=(imm_a, imm_b)
     fig = plt.figure(figsize=figsize)
     ax = plt.axes(projection=projPC)
     ax.set_extent(extent, crs=projPC)
+
     sc = ax.scatter(
         lon_deg[mask],
         lat_deg[mask],
@@ -127,22 +134,40 @@ def plot_lu_class_fraction_scatter(ds, class_index, extent, title_prefix="", s=0
             linewidth=0.5
         )
     plt.colorbar(sc, ax=ax, label='Frazione [-]')
-    ax.set_title(f"{title_prefix}Classe LU {class_index+1}  —  {mask.sum()} celle attive")
+
     ax.set_xlabel("Longitudine [°]")
     ax.set_ylabel("Latitudine [°]")
+
+    # Elementi geografici
+    ax.coastlines(resolution="10m")
     # Aggiungi gridlines
     gl = ax.gridlines(draw_labels=True, linewidth=0.5, color='gray', alpha=0.5, linestyle='--')
+    # Dimensione font delle coordinate
+    gl.xlabel_style = {'size': f_ticks }
+    gl.ylabel_style = {'size': f_ticks}
+   # gl.left_labels= False
     # Tolgo labels superiori e a sinistra
     gl.top_labels = False
     gl.right_labels = False
-    plt.tight_layout()
-    plt.show()
+    
+    # Titolo dinamico
+    title =f"{title_prefix} Classe LU {class_index+1} a 2km —  {mask.sum()} celle attive"
+   # if run_date:
+   #     title += f" - Run {run_date}"
+    ax.set_title(title, fontsize=f_title, fontweight="bold")
+    
+    fig.tight_layout()
+    
+    return fig, ax
 import matplotlib.pyplot as plt
 extent=extent_mask
-#extent = [8.6,13.2,43.43,45.43]
+extent = [8.6,13.2,43.43,45.43]
 import geopandas as gpd
 comuni = gpd.read_file('/home/lmattavelli@ARPA.EMR.NET/Documenti/Progetti/Old_projects/GO1/Mappe/Com01012025_WGS84.shp')
 comune = comuni[comuni['COMUNE'] == 'Bologna']
 comune = comune.to_crs(epsg=4326)
-plot_lu_class_fraction_scatter(ds, class_index=CLASS_OLD, extent=extent, title_prefix="PRIMA —", s=4, comune=comune)
-plot_lu_class_fraction_scatter(ds_modified, class_index=CLASS_OLD, extent=extent, title_prefix="DOPO  —", s=2)
+fig,ax = plot_lu_class_fraction_scatter(ds, class_index=CLASS_OLD, extent=extent, title_prefix="PRIMA —", s=8, comune=comune)
+plt.savefig(f'../Immagini_supporto/Urbano/Immagini_caso_20230731/Experiment_GLBCModif1/LUC_pre_modif_2km.png', dpi=300, bbox_inches='tight')
+fig,ax=plot_lu_class_fraction_scatter(ds_modified, class_index=CLASS_OLD, extent=extent, title_prefix="DOPO —", s=8, comune=comune)
+plt.savefig(f'../Immagini_supporto/Urbano/Immagini_caso_20230731/Experiment_GLBCModif1/LUC_post_modif_2km.png', dpi=300, bbox_inches='tight')
+#plot_lu_class_fraction_scatter(ds_modified, class_index=CLASS_OLD, extent=extent, title_prefix="DOPO  —", s=20)
